@@ -15,29 +15,27 @@ def hello():
 
 @app.route(f'/{API_VERSION}/questions/create', methods=['POST'])
 def create_question():
-    print(str(request.json))
     status = QE.create_question(request.json)
-    return jsonify({ 'status_code' : status })
+    return jsonify(status)
 
 @app.route(f'/{API_VERSION}/questions/delete', methods=['POST'])
 def delete_question():
-    print('Delete Question')
+    status = QE.delete_question(request.json)
+    return jsonify(status)
 
 @app.route(f'/{API_VERSION}/questions/get')
 def get_question():
-    print(str(request.args))
-    #print('Get Question')
-    return jsonify({
-        'status_code' : 200
-    })
+    if 'name' not in request.args:
+        status = { 'status_code' : 200, 'error' : 'variable "name" missing in query' }
+    else:
+        status = QE.get_question(request.args['name'])
+
+    return jsonify(status)
 
 @app.route(f'/{API_VERSION}/questions/list')
 def get_list():
-    questionnaires = QE.list_all_questions()
-    return jsonify({
-        'status_code' : 200,
-        'data' : questionnaires
-    })
+    status = QE.list_all_questions()
+    return jsonify(status)
 
 @app.route(f'/{API_VERSION}/questionnaires/create', methods=['POST'])
 def create_questionnaire():
