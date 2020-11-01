@@ -9,57 +9,85 @@ API_VERSION='0.1'
 
 QE = QuestionnaireEngine()
 
+QUESTIONS = 'questions'
+QUESTIONNAIRES = 'questionnaires'
+ABTESTS = 'abtests'
+
 @app.route('/')
 def hello():
     return "Hello World!"
 
-@app.route(f'/{API_VERSION}/questions/create', methods=['POST'])
+@app.route(f'/{API_VERSION}/{QUESTIONS}/create', methods=['POST'])
 def create_question():
-    status = QE.create_question(request.json)
+    status = QE.create_doc(QUESTIONS, request.json)
     return jsonify(status)
 
-@app.route(f'/{API_VERSION}/questions/delete', methods=['POST'])
+@app.route(f'/{API_VERSION}/{QUESTIONS}/delete', methods=['POST'])
 def delete_question():
-    status = QE.delete_question(request.json)
+    status = QE.delete_doc(QUESTIONS, request.json)
     return jsonify(status)
 
-@app.route(f'/{API_VERSION}/questions/get')
+@app.route(f'/{API_VERSION}/{QUESTIONS}/get')
 def get_question():
     if 'name' not in request.args:
         status = { 'status_code' : 200, 'error' : 'variable "name" missing in query' }
     else:
-        status = QE.get_question(request.args['name'])
+        status = QE.get_doc(QUESTIONS, request.args['name'])
 
     return jsonify(status)
 
-@app.route(f'/{API_VERSION}/questions/list')
-def get_list():
-    status = QE.list_all_questions()
+@app.route(f'/{API_VERSION}/{QUESTIONS}/list')
+def get_question_list():
+    status = QE.list_all_docs(QUESTIONS)
     return jsonify(status)
 
-@app.route(f'/{API_VERSION}/questionnaires/create', methods=['POST'])
+@app.route(f'/{API_VERSION}/{QUESTIONNAIRES}/create', methods=['POST'])
 def create_questionnaire():
-    print('Create Questionnaires')
+    status = QE.create_doc(QUESTIONNAIRES, request.json)
+    return jsonify(status)
 
-@app.route(f'/{API_VERSION}/questionnaires/delete', methods=['POST'])
+@app.route(f'/{API_VERSION}/{QUESTIONNAIRES}/delete', methods=['POST'])
 def delete_questionnaire():
-    print('Delete Questionnaires')
+    status = QE.delete_doc(QUESTIONNAIRES, request.json)
+    return jsonify(status)
 
-@app.route(f'/{API_VERSION}/questionnaires/get')
+@app.route(f'/{API_VERSION}/{QUESTIONNAIRES}/get')
 def get_questionnaire():
-    print('Get Questionnaires')
+    if 'name' not in request.args:
+        status = { 'status_code' : 200, 'error' : 'variable "name" missing in query' }
+    else:
+        status = QE.get_doc(QUESTIONNAIRES, request.args['name'])
 
-@app.route(f'/{API_VERSION}/abtest/create', methods=['POST'])
+    return jsonify(status)
+
+@app.route(f'/{API_VERSION}/{QUESTIONNAIRES}/list')
+def get_questionnaires_list():
+    status = QE.list_all_docs(QUESTIONNAIRES)
+    return jsonify(status)
+
+@app.route(f'/{API_VERSION}/{ABTESTS}/create', methods=['POST'])
 def create_abtest():
-    print('Create A/B test')
+    status = QE.create_doc(ABTESTS, request.json)
+    return jsonify(status)
 
-@app.route(f'/{API_VERSION}/abtest/delete', methods=['POST'])
+@app.route(f'/{API_VERSION}/{ABTESTS}/delete', methods=['POST'])
 def delete_abtest():
-    print('Delete A/B test')
+    status = QE.delete_doc(ABTESTS, request.json)
+    return jsonify(status)
 
-@app.route(f'/{API_VERSION}/abtest/get')
+@app.route(f'/{API_VERSION}/{ABTESTS}/get')
 def get_abtest():
-    print('Get A/B test')
+    if 'name' not in request.args:
+        status = { 'status_code' : 200, 'error' : 'variable "name" missing in query' }
+    else:
+        status = QE.get_doc(ABTESTS, request.args['name'])
+
+    return jsonify(status)
+
+@app.route(f'/{API_VERSION}/{ABTESTS}/list')
+def get_abtest_list():
+    status = QE.list_all_docs(ABTESTS)
+    return jsonify(status)
 
 
 if __name__ == '__main__':
