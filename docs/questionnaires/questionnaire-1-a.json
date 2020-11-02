@@ -1,0 +1,14 @@
+{
+    "id" : "QUESTIONNAIRE-1-a",
+    "start" : "SIMPLE-QUESTION-1",
+    "description" : [
+        { "qid" : "SIMPLE-QUESTION-1",
+          "next" : [ "MULTI_SELECT_QUESTION3" ] },
+        { "qid" : "MULTI_SELECT_QUESTION3",
+          "next" : [ "MULTI-SELECT-MULTI_CHOICE-QUESTION-2", "MULTI_INPUT1" ] },
+        { "qid" : "MULTI-SELECT-MULTI_CHOICE-QUESTION-2",
+          "next" : [ "MULTI_INPUT1" ] },
+        { "qid" : "MULTI_INPUT1",
+          "next" : "FINAL_SUBMIT1" }
+    ]
+}

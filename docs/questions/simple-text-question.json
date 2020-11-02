@@ -1,0 +1,7 @@
+{
+    "id" : "SIMPLE-QUESTION-1",
+    "type" : "TEXT",
+    "definition" : {
+        "question" : "What was the make and model of first car you owned?"
+    }
+}

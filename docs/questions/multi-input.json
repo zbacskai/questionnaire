@@ -1,0 +1,11 @@
+{
+    "id" : "MULTI_INPUT1",
+    "type" : "MULTI_INPUT",
+    "description" : {
+        "input_fields" : [
+            { "text" : "First Name", "type" : "TEXT" }, 
+            { "text" : "Last Name", "type" : "TEXT" },
+            { "text" : "Phone Number", "type" : "TEXT" }        
+        ]
+    }
+}
