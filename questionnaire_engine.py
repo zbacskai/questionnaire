@@ -40,8 +40,11 @@ class QuestionnaireEngine():
         qname = self.get_questionnaire_based_on_experiment()
         qdata = self._db['questionnaires'].find_one({'_id' : qname})
         first_question = qdata['start']
-        self._db['sessions'].insert_one({ '_id' : session_id, 'next_question' : first_question,
-                                         'questionnaire' : qname, 'answers' : [] })
+        self._db['sessions'].update_one({ '_id' : session_id },
+                                        { "$set" :{ '_id' : session_id, 'next_question' : first_question,
+                                                    'questionnaire' : qname, 'answers' : [] },
+                                          '$currentDate': { 'created': { "$type" : "date" }}},
+                                         upsert=True)
 
     def get_next_question(self, session_id):
         qdata = self._db['sessions'].find_one({'_id' : session_id})
