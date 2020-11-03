@@ -11,12 +11,14 @@ from wtforms import (
 from wtforms.validators import DataRequired
 
 from q_app.engine.config_api import QuestionnaireEngine
+from q_app.engine.database import Database
 
 app = Flask(__name__)
 
 API_VERSION = "0.1"
 
-QE = QuestionnaireEngine()
+DB = Database()
+QE = QuestionnaireEngine(DB)
 
 QUESTIONS = "questions"
 QUESTIONNAIRES = "questionnaires"

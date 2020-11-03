@@ -1,14 +1,8 @@
 from random import choices
 
-from pymongo import MongoClient
-
-
 class QuestionnaireEngine:
-    def __init__(self):
-        self._dbclient = MongoClient(
-            "localhost", 27017, username="root", password="example"
-        )
-        self._db = self._dbclient["questions_db"]
+    def __init__(self, db_client):
+        self._db = db_client
 
     def session_is_valid(self, session_id):
         return self._db["sessions"].find_one({"_id": session_id}) is not None
