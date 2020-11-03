@@ -10,7 +10,7 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired
 
-from questionnaire_engine import QuestionnaireEngine
+from q_app.engine.config_api import QuestionnaireEngine
 
 app = Flask(__name__)
 
@@ -105,11 +105,7 @@ FORM_CREATE = {
 
 def create_form(question):
     qtype = question["type"]
-    if qtype not in FORM_CREATE:
-        return f"Hello World! Your id: {session['uuid']}"
-
     qdef = question["definition"]
-
     return FORM_CREATE[qtype](qdef)
 
 
@@ -271,5 +267,3 @@ def get_abtest():
     return jsonify(status)
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0")
