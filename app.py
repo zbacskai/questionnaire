@@ -24,7 +24,7 @@ QUESTIONNAIRES = 'questionnaires'
 ABTESTS = 'abtests'
 
 # TODO: Change this
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/j'
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/k'
 
 def create_textform(qdef):
     class F(FlaskForm):
@@ -53,10 +53,24 @@ def create_multiselect_choice(qdef):
     setattr(F, 'submit', SubmitField('Next'))
     return F()
 
+def get_field_var_name(input_str):
+    var_name = input_str
+    var_name = var_name.lower()
+    return var_name.replace(' ', '_')
+
 def create_multi_input(qdef):
     class F(FlaskForm):
         pass
 
+    for input_field in qdef['input_fields']:
+        print(str(input_field))
+        if input_field['type'] != 'TEXT':
+            continue
+
+        var_name = get_field_var_name(input_field['text'])
+        setattr(F, var_name, TextField(input_field['text']))
+
+    setattr(F, 'submit', SubmitField('Next'))
     return F()
 
 def create_final_submit(qdef):
@@ -95,6 +109,42 @@ def get_next_question_id(qdef, qtype, answer):
 
     return 0
 
+def store_final_input(question, form, session_id):
+    pass
+
+def store_answer_multi_input(question, form, session_id):
+    qdef = question['definition']
+    answer = {}
+    answer['answer'] = {}
+    for input_field in qdef['input_fields']:
+        var_name = get_field_var_name(input_field['text'])
+        field = getattr(form, var_name)
+        answer['answer'][input_field['text']] = field.data
+
+    QE.set_next_question(session_id, 0, answer)
+    return redirect('/')
+
+
+def store_answer_simple(question, form, session_id):
+    qtype = question['type']
+    qdef = question['definition']
+    answer = {}
+    answer['question'] = qdef['question']
+    answer['answer'] = form.question.data
+    next_question_id = get_next_question_id(qdef, qtype, answer['answer'])
+    QE.set_next_question(session_id, next_question_id, answer)
+    return redirect('/')
+
+def store_answer_and_get_next(question, form, session_id):
+    qtype = question['type']
+    if qtype in ['TEXT', 'MULTI_SELECT', 'MULTI_SELECT_CHOICE']:
+        return store_answer_simple(question, form, session_id)
+
+    if qtype == 'MULTI_INPUT':
+        return store_answer_multi_input(question, form, session_id)
+
+    return store_final_input(question, form, session_id)
+
 # Helper functions
 def handle_question(question, session_id):
     form = create_form(question)
@@ -102,14 +152,7 @@ def handle_question(question, session_id):
         return form
 
     if form.validate_on_submit():
-        qtype = question['type']
-        qdef = question['definition']
-        answer = {}
-        answer['question'] = qdef['question']
-        answer['answer'] = form.question.data
-        next_question_id = get_next_question_id(qdef, qtype, answer['answer'])
-        QE.set_next_question(session_id, next_question_id, answer)
-        return redirect('/')
+        return store_answer_and_get_next(question, form, session_id)
 
     return render_template('question-step.html', form=form)
 

@@ -9,6 +9,6 @@
         { "qid" : "MULTI-SELECT-MULTI_CHOICE-QUESTION-2",
           "next" : [ "MULTI_INPUT1" ] },
         { "qid" : "MULTI_INPUT1",
-          "next" : "FINAL_SUBMIT1" }
+          "next" : ["FINAL_SUBMIT1"] }
     ]
 }
