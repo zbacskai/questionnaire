@@ -10,10 +10,11 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired
 
-from q_app.engine.config_api import CA
-from q_app.engine.questionnaire import QE
+from q_app.engine.config_api import ConfigureApi
+from q_app.engine.questionnaire import QuestionnaireEngine
+from q_app.engine.database import Database
 from q_app.flask.forms import FormFactory
-from q_app.flask.submission import store_answer_and_get_next
+from q_app.flask.submission import UserInputHandler
 
 from q_app.engine.utils import get_field_var_name
 import os
@@ -28,6 +29,11 @@ ABTESTS = "abtests"
 ABTEST_DB = 'configuration'
 ABTEST_KEY = 'testconfig'
 
+DB = Database()
+CA = ConfigureApi(DB)
+QE = QuestionnaireEngine(DB)
+UI = UserInputHandler(QE)
+
 # TODO: Change this
 app.secret_key = os.environ['Q_APP_SECRET_KEY']
 
@@ -37,7 +43,7 @@ def _handle_question(question, session_id):
 
     form = FormFactory.create_form(question['type'], question['definition'])
     if form.validate_on_submit():
-        return store_answer_and_get_next(question, form, session_id)
+        return UI.store_answer_and_get_next(question, form, session_id)
 
     return render_template("question-step.html", form=form)
 

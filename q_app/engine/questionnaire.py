@@ -1,5 +1,4 @@
 from random import choices
-from q_app.engine.database import DB
 
 class QuestionnaireEngine:
     def __init__(self, db_client):
@@ -63,4 +62,3 @@ class QuestionnaireEngine:
 
         return self._db["questions"].find_one({"_id": qdata["next_question"]})
 
-QE = QuestionnaireEngine(DB)

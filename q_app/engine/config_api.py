@@ -1,5 +1,4 @@
 from random import choices
-from q_app.engine.database import DB
 
 class ConfigureApi:
     def __init__(self, db_client):
@@ -44,4 +43,3 @@ class ConfigureApi:
 
         return {"status_code": 200, "data": all_documents}
 
-CA = ConfigureApi(DB)
