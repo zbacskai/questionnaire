@@ -1,6 +1,7 @@
 {
     "id" : "MULTI_INPUT1",
     "type" : "MULTI_INPUT",
+    "title" : "Contact Details",
     "definition" : {
         "input_fields" : [
             { "text" : "First Name", "type" : "TEXT" }, 

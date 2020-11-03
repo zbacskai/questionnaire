@@ -30,6 +30,7 @@ class UserInputHandler:
         qdef = question["definition"]
         answer = {}
         answer["answer"] = {}
+        answer["title"] = question["title"]
         for input_field in qdef["input_fields"]:
             var_name = get_field_var_name(input_field["text"])
             field = getattr(form, var_name)
@@ -42,6 +43,7 @@ class UserInputHandler:
         qtype = question["type"]
         qdef = question["definition"]
         answer = {}
+        answer["title"] = question["title"]
         answer["question"] = qdef["question"]
         answer["answer"] = form.question.data
         next_question_id = get_next_question_id(qdef, qtype, answer["answer"])

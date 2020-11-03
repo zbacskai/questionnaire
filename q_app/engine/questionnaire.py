@@ -1,5 +1,6 @@
 from random import choices
 
+from q_app.engine.constants import QuestionTypes
 
 class QuestionnaireEngine:
     def __init__(self, db_client):
@@ -36,17 +37,22 @@ class QuestionnaireEngine:
 
         self._db["sessions"].update_one(
             {"_id": session_id},
-            {"$set": {"next_question": next_question}, "$push": {"answers": answer}},
+            {"$set": {"next_question": next_question}, "$push": {"answers": answer},
+             "$inc" : { "question_count" : 1}},
         )
+
+    def get_question_count(self, session_id):
+        return self._db["sessions"].find_one(
+            {"_id": session_id})["question_count"]
 
     def create_new_session(self):
         qname = self.get_questionnaire_based_on_experiment()
         qdata = self._db["questionnaires"].find_one({"_id": qname})
         first_question = qdata["start"]
         session_id = self._db["sessions"].insert(
-            {"next_question": first_question, "questionnaire": qname, "answers": []}
+            {"next_question": first_question, "questionnaire": qname, "answers": [],
+             "question_count" : 1 }
         )
-        print(str(session_id))
         self._db["sessions"].update_one(
             {"_id": session_id}, {"$currentDate": {"created": {"$type": "date"}}}
         )
@@ -56,6 +62,6 @@ class QuestionnaireEngine:
     def get_question(self, session_id):
         qdata = self._db["sessions"].find_one({"_id": session_id})
         if qdata["next_question"] == "SUBMITTED":
-            return {"type": "SUBMITTED"}
+            return {"type": QuestionTypes.QuestionnaireClosure}
 
         return self._db["questions"].find_one({"_id": qdata["next_question"]})

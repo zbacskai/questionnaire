@@ -1,7 +1,7 @@
 {
     "id" : "FINAL_SUBMIT1",
     "type" : "FINAL_SUBMIT",
+    "title" : "Submission  of Answers",
     "definition" : {
-    	"test" : "By pressing submit button you agree to proceed. Press discard to opt out"
     }
 }
