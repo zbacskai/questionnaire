@@ -1,7 +1,7 @@
 {
    "id" : "MULTI_SELECT_QUESTION3",
    "type" : "MULTI_SELECT",
-   "definiton" : {
+   "definition" : {
    	"question" : "Do you like this code?",
    	"answer" : [
    	   "Yes",

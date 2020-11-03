@@ -1,7 +1,7 @@
 {
     "id" : "MULTI_INPUT1",
     "type" : "MULTI_INPUT",
-    "description" : {
+    "definition" : {
         "input_fields" : [
             { "text" : "First Name", "type" : "TEXT" }, 
             { "text" : "Last Name", "type" : "TEXT" },

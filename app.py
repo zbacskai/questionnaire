@@ -5,7 +5,7 @@ from questionnaire_engine import QuestionnaireEngine
 from flask.json import jsonify
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextField, RadioField, SelectMultipleField
 from wtforms.validators import DataRequired
 
 from flask import render_template
@@ -24,28 +24,88 @@ QUESTIONNAIRES = 'questionnaires'
 ABTESTS = 'abtests'
 
 # TODO: Change this
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/f'
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/g'
 
-# Helper functions
-def render_question(question, session_id):
-    print(str(question))
-    qtype = question['type']
-    if qtype != 'TEXT':
-        return f"Hello World! Your id: {session['uuid']}"
-
+def create_textform(qdef):
     class F(FlaskForm):
         pass
 
-    qdef = question['definition']
     setattr(F, 'question', TextField(qdef['question']))
     setattr(F, 'submit', SubmitField('Next'))
-    form = F()
+    return F()
+
+def create_multiselect(qdef):
+    class F(FlaskForm):
+        pass
+
+    setattr(F, 'question', RadioField(qdef['question'], choices=qdef['answer']))
+    setattr(F, 'submit', SubmitField('Next'))
+    return F()
+
+def create_multiselect_choice(qdef):
+    class F(FlaskForm):
+        pass
+
+    choices = [ (x, x) for x in qdef['answer']  ]
+    setattr(F, 'question',
+            SelectMultipleField(qdef['question'], coerce=str,
+            choices=choices, validators=[DataRequired()]))
+    setattr(F, 'submit', SubmitField('Next'))
+    return F()
+
+def create_multi_input(qdef):
+    return "not supported"
+
+def create_final_submit(qdef):
+    class F(FlaskForm):
+        pass
+
+    setattr(F, 'submit', SubmitField('Submit'))
+    setattr(F, 'cancel', SubmitField('Cancel'))
+
+    return F()
+
+FORM_CREATE = {
+    'TEXT' : create_textform,
+    'MULTI_SELECT' : create_multiselect,
+    'MULTI_SELECT_CHOICE' : create_multiselect_choice,
+    'MULTI_INPUT' : create_multi_input,
+    'FINAL_SUBMIT' : create_final_submit
+}
+
+def create_form(question):
+    qtype = question['type']
+    if qtype not in FORM_CREATE:
+        return f"Hello World! Your id: {session['uuid']}"
+
+    qdef = question['definition']
+
+    return FORM_CREATE[qtype](qdef)
+
+def get_next_question_id(qdef, qtype, answer):
+    if qtype != 'MULTI_SELECT':
+        return 0
+
+    for index, stored_answer in enumerate(qdef['answer']):
+        if stored_answer == answer:
+            return index
+
+    return 0
+
+# Helper functions
+def handle_question(question, session_id):
+    form = create_form(question)
+    if isinstance(form, str):
+        return form
 
     if form.validate_on_submit():
+        qtype = question['type']
+        qdef = question['definition']
         answer = {}
         answer['question'] = qdef['question']
         answer['answer'] = form.question.data
-        QE.set_next_question(session_id, 0, answer)
+        next_question_id = get_next_question_id(qdef, qtype, answer['answer'])
+        QE.set_next_question(session_id, next_question_id, answer)
         return redirect('/')
 
     return render_template('simple-text-question.html', form=form)
@@ -59,7 +119,7 @@ def start_questionnaire():
     #Create a new session. only if needed
     QE.create_new_session(session['uuid'])
     question = QE.get_next_question(session['uuid'])
-    return render_question(question, session['uuid'])
+    return handle_question(question, session['uuid'])
 
 @app.route(f'/{API_VERSION}/{QUESTIONS}/create', methods=['POST'])
 def create_question():

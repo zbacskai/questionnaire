@@ -1,7 +1,7 @@
 {
     "id" : "MULTI-SELECT-MULTI_CHOICE-QUESTION-2",
     "type" : "MULTI_SELECT_CHOICE",
-    "description" : {
+    "definition" : {
     	"question" : "Which of the follwoing are fruits?",
     	"answer" : [
     	    "Apple",
