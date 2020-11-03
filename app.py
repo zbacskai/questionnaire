@@ -24,7 +24,7 @@ QUESTIONNAIRES = 'questionnaires'
 ABTESTS = 'abtests'
 
 # TODO: Change this
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/l'
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/l1'
 
 def create_textform(qdef):
     class F(FlaskForm):
@@ -63,7 +63,6 @@ def create_multi_input(qdef):
         pass
 
     for input_field in qdef['input_fields']:
-        print(str(input_field))
         if input_field['type'] != 'TEXT':
             continue
 
@@ -220,30 +219,22 @@ def get_questionnaires_list():
     status = QE.list_all_docs(QUESTIONNAIRES)
     return jsonify(status)
 
-@app.route(f'/{API_VERSION}/{ABTESTS}/create', methods=['POST'])
+@app.route(f'/{API_VERSION}/{ABTESTS}/update', methods=['POST'])
 def create_abtest():
-    status = QE.create_doc(ABTESTS, request.json)
+    request.json['id'] = 'testconfig'
+    status = QE.create_doc('configuration', request.json)
     return jsonify(status)
 
 @app.route(f'/{API_VERSION}/{ABTESTS}/delete', methods=['POST'])
 def delete_abtest():
-    status = QE.delete_doc(ABTESTS, request.json)
+    status = QE.delete_doc('configuration', {'id' : 'testconfig'})
     return jsonify(status)
 
 @app.route(f'/{API_VERSION}/{ABTESTS}/get')
 def get_abtest():
-    if 'name' not in request.args:
-        status = { 'status_code' : 200, 'error' : 'variable "name" missing in query' }
-    else:
-        status = QE.get_doc(ABTESTS, request.args['name'])
+    status = QE.get_doc('configuration', 'testconfig')
 
     return jsonify(status)
-
-@app.route(f'/{API_VERSION}/{ABTESTS}/list')
-def get_abtest_list():
-    status = QE.list_all_docs(ABTESTS)
-    return jsonify(status)
-
 
 if __name__ == '__main__':
     app.run()

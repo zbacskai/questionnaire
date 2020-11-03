@@ -1,10 +1,17 @@
 import pymongo
 from pymongo import MongoClient
+from random import choices
 
 class QuestionnaireEngine():
     def __init__(self):
         self._dbclient = MongoClient('localhost', 27017, username='root', password='example')
         self._db = self._dbclient['questions_db']
+
+    def get_questionnaire_based_on_experiment(self):
+        abtest_data = self._db['configuration'].find_one({'_id' : 'testconfig'})
+        tuple_list = [(alloc_def['questionnaire'], alloc_def['percentage']) for alloc_def in abtest_data['allocations']]
+        choice_input = list(zip(*tuple_list))
+        return choices(choice_input[0], choice_input[1])[0]
 
     def delete_form(self, session_id):
         session_data = self._db['sessions'].delete_one({'_id' : session_id})
@@ -30,7 +37,7 @@ class QuestionnaireEngine():
         if self._db['sessions'].find_one({'_id' : session_id}) is not None:
             return
 
-        qname = 'QUESTIONNAIRE-1-a'
+        qname = self.get_questionnaire_based_on_experiment()
         qdata = self._db['questionnaires'].find_one({'_id' : qname})
         first_question = qdata['start']
         self._db['sessions'].insert_one({ '_id' : session_id, 'next_question' : first_question,

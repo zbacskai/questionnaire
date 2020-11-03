@@ -1,0 +1,6 @@
+{
+    "allocations" : [
+        { "questionnaire" : "QUESTIONNAIRE-1-a", "percentage" : 50 },
+        { "questionnaire" : "QUESTIONNAIRE-1-b", "percentage" : 50 }
+    ]
+}
