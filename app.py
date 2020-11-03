@@ -24,7 +24,7 @@ QUESTIONNAIRES = 'questionnaires'
 ABTESTS = 'abtests'
 
 # TODO: Change this
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/g'
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/j'
 
 def create_textform(qdef):
     class F(FlaskForm):
@@ -54,7 +54,10 @@ def create_multiselect_choice(qdef):
     return F()
 
 def create_multi_input(qdef):
-    return "not supported"
+    class F(FlaskForm):
+        pass
+
+    return F()
 
 def create_final_submit(qdef):
     class F(FlaskForm):
@@ -108,7 +111,7 @@ def handle_question(question, session_id):
         QE.set_next_question(session_id, next_question_id, answer)
         return redirect('/')
 
-    return render_template('simple-text-question.html', form=form)
+    return render_template('question-step.html', form=form)
 
 # Rest API
 @app.route('/', methods=['POST', 'GET'])

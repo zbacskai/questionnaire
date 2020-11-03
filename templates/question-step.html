@@ -1,0 +1,16 @@
+{% block content %}
+    <h1>Question</h1>
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        {% for obj in form %}
+        {% if obj.type != "SubmitField" and obj.type != "CSRFTokenField" %}
+        <p>{{ obj.label }}<br> {{ obj(size=32) }} </p>
+        {% endif %}
+        {% endfor %}
+        {% for obj in form %}
+        {% if obj.type == "SubmitField" %}
+        <p>{{ obj() }}</p>
+        {% endif %}
+        {% endfor %}
+    </form>
+{% endblock %}
