@@ -237,4 +237,4 @@ def get_abtest():
     return jsonify(status)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0')
