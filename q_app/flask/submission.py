@@ -1,21 +1,7 @@
-from bson import ObjectId
-from flask import Flask, redirect, render_template, request, session
-from flask.json import jsonify
-from flask_wtf import FlaskForm
-from wtforms import (
-    RadioField,
-    SelectMultipleField,
-    SubmitField,
-    TextField,
-)
-from wtforms.validators import DataRequired
-
-from q_app.engine.config_api import ConfigureApi
-from q_app.engine.questionnaire import QuestionnaireEngine
-from q_app.engine.database import Database
-from q_app.flask.forms import FormFactory
+from flask import redirect
 
 from q_app.engine.utils import get_field_var_name
+
 
 def get_next_question_id(qdef, qtype, answer):
     if qtype != "MULTI_SELECT":
@@ -40,7 +26,6 @@ class UserInputHandler:
 
         return redirect("/")
 
-
     def _store_answer_multi_input(self, question, form, session_id):
         qdef = question["definition"]
         answer = {}
@@ -53,7 +38,6 @@ class UserInputHandler:
         self._qe.set_next_question(session_id, 0, answer)
         return redirect("/")
 
-
     def _store_answer_simple(self, question, form, session_id):
         qtype = question["type"]
         qdef = question["definition"]
@@ -63,7 +47,6 @@ class UserInputHandler:
         next_question_id = get_next_question_id(qdef, qtype, answer["answer"])
         self._qe.set_next_question(session_id, next_question_id, answer)
         return redirect("/")
-
 
     def store_answer_and_get_next(self, question, form, session_id):
         qtype = question["type"]

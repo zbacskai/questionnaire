@@ -1,13 +1,7 @@
-from flask import Flask, redirect, render_template, request, session
-from flask.json import jsonify
 from flask_wtf import FlaskForm
-from wtforms import (
-    RadioField,
-    SelectMultipleField,
-    SubmitField,
-    TextField,
-)
+from wtforms import RadioField, SelectMultipleField, SubmitField, TextField
 from wtforms.validators import DataRequired
+
 from q_app.engine.utils import get_field_var_name
 
 
@@ -24,8 +18,7 @@ def create_multiselect(qdef):
     class F(FlaskForm):
         pass
 
-    setattr(F, "question",
-            RadioField(qdef["question"], choices=qdef["answer"]))
+    setattr(F, "question", RadioField(qdef["question"], choices=qdef["answer"]))
     setattr(F, "submit", SubmitField("Next"))
     return F()
 
@@ -39,13 +32,12 @@ def create_multiselect_choice(qdef):
         F,
         "question",
         SelectMultipleField(
-            qdef["question"], coerce=str,
-            choices=choices,
-            validators=[DataRequired()]
+            qdef["question"], coerce=str, choices=choices, validators=[DataRequired()]
         ),
     )
     setattr(F, "submit", SubmitField("Next"))
     return F()
+
 
 def create_multi_input(qdef):
     class F(FlaskForm):
@@ -80,7 +72,7 @@ FORM_CREATE = {
     "FINAL_SUBMIT": create_final_submit,
 }
 
-class FormFactory():
+
+class FormFactory:
     def create_form(form_type, question_definition):
         return FORM_CREATE[form_type](question_definition)
-

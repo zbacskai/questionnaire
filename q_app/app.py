@@ -1,23 +1,14 @@
+import os
+
 from bson import ObjectId
-from flask import Flask, redirect, render_template, request, session
+from flask import Flask, render_template, request, session
 from flask.json import jsonify
-from flask_wtf import FlaskForm
-from wtforms import (
-    RadioField,
-    SelectMultipleField,
-    SubmitField,
-    TextField,
-)
-from wtforms.validators import DataRequired
 
 from q_app.engine.config_api import ConfigureApi
-from q_app.engine.questionnaire import QuestionnaireEngine
 from q_app.engine.database import Database
+from q_app.engine.questionnaire import QuestionnaireEngine
 from q_app.flask.forms import FormFactory
 from q_app.flask.submission import UserInputHandler
-
-from q_app.engine.utils import get_field_var_name
-import os
 
 app = Flask(__name__)
 
@@ -26,8 +17,8 @@ API_VERSION = "0.1"
 QUESTIONS = "questions"
 QUESTIONNAIRES = "questionnaires"
 ABTESTS = "abtests"
-ABTEST_DB = 'configuration'
-ABTEST_KEY = 'testconfig'
+ABTEST_DB = "configuration"
+ABTEST_KEY = "testconfig"
 
 DB = Database()
 CA = ConfigureApi(DB)
@@ -35,13 +26,14 @@ QE = QuestionnaireEngine(DB)
 UI = UserInputHandler(QE)
 
 # TODO: Change this
-app.secret_key = os.environ['Q_APP_SECRET_KEY']
+app.secret_key = os.environ["Q_APP_SECRET_KEY"]
+
 
 def _handle_question(question, session_id):
     if question["type"] == "SUBMITTED":
         return render_template("thanks-for-submit.html")
 
-    form = FormFactory.create_form(question['type'], question['definition'])
+    form = FormFactory.create_form(question["type"], question["definition"])
     if form.validate_on_submit():
         return UI.store_answer_and_get_next(question, form, session_id)
 
@@ -51,8 +43,7 @@ def _handle_question(question, session_id):
 # Rest API
 @app.route("/", methods=["POST", "GET"])
 def handle_questionnaire():
-    if ("uuid" not in session or
-            not QE.session_is_valid(ObjectId(session["uuid"]))):
+    if "uuid" not in session or not QE.session_is_valid(ObjectId(session["uuid"])):
         session["uuid"] = str(QE.create_new_session())
 
     session_uuid = ObjectId(session["uuid"])
@@ -74,8 +65,7 @@ def delete_question():
 @app.route(f"/{API_VERSION}/{QUESTIONS}/get")
 def get_question():
     if "name" not in request.args:
-        status = {"status_code": 200,
-                  "error": 'variable "name" missing in query'}
+        status = {"status_code": 200, "error": 'variable "name" missing in query'}
     else:
         status = CA.get_doc(QUESTIONS, request.args["name"])
 
@@ -100,8 +90,7 @@ def delete_questionnaire():
 @app.route(f"/{API_VERSION}/{QUESTIONNAIRES}/get")
 def get_questionnaire():
     if "name" not in request.args:
-        status = {"status_code": 200,
-                  "error": 'variable "name" missing in query'}
+        status = {"status_code": 200, "error": 'variable "name" missing in query'}
     else:
         status = CA.get_doc(QUESTIONNAIRES, request.args["name"])
 
@@ -128,4 +117,3 @@ def delete_abtest():
 @app.route(f"/{API_VERSION}/{ABTESTS}/get")
 def get_abtest():
     return jsonify(CA.get_doc(ABTEST_DB, ABTEST_KEY))
-

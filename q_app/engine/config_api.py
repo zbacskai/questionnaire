@@ -1,5 +1,3 @@
-from random import choices
-
 class ConfigureApi:
     def __init__(self, db_client):
         self._db = db_client
@@ -42,4 +40,3 @@ class ConfigureApi:
             all_documents.append(document["_id"])
 
         return {"status_code": 200, "data": all_documents}
-

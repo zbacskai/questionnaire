@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 
-class Database():
+
+class Database:
     def __init__(self):
         self._dbclient = MongoClient(
             "localhost", 27017, username="root", password="example"
@@ -9,5 +10,6 @@ class Database():
 
     def __getitem__(self, key):
         return self._db[key]
+
 
 DB = Database()

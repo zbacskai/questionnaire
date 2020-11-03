@@ -1,5 +1,6 @@
 from random import choices
 
+
 class QuestionnaireEngine:
     def __init__(self, db_client):
         self._db = db_client
@@ -35,8 +36,7 @@ class QuestionnaireEngine:
 
         self._db["sessions"].update_one(
             {"_id": session_id},
-            {"$set":
-             {"next_question": next_question}, "$push": {"answers": answer}}
+            {"$set": {"next_question": next_question}, "$push": {"answers": answer}},
         )
 
     def create_new_session(self):
@@ -44,13 +44,11 @@ class QuestionnaireEngine:
         qdata = self._db["questionnaires"].find_one({"_id": qname})
         first_question = qdata["start"]
         session_id = self._db["sessions"].insert(
-            {"next_question": first_question,
-             "questionnaire": qname, "answers": []}
+            {"next_question": first_question, "questionnaire": qname, "answers": []}
         )
         print(str(session_id))
         self._db["sessions"].update_one(
-            {"_id": session_id},
-            {"$currentDate": {"created": {"$type": "date"}}}
+            {"_id": session_id}, {"$currentDate": {"created": {"$type": "date"}}}
         )
 
         return session_id
@@ -61,4 +59,3 @@ class QuestionnaireEngine:
             return {"type": "SUBMITTED"}
 
         return self._db["questions"].find_one({"_id": qdata["next_question"]})
-
