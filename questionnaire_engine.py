@@ -7,6 +7,9 @@ class QuestionnaireEngine():
         self._dbclient = MongoClient('localhost', 27017, username='root', password='example')
         self._db = self._dbclient['questions_db']
 
+    def session_is_valid(self, session_id):
+        return self._db['sessions'].find_one({'_id' : session_id}) is not None
+
     def get_questionnaire_based_on_experiment(self):
         abtest_data = self._db['configuration'].find_one({'_id' : 'testconfig'})
         tuple_list = [(alloc_def['questionnaire'], alloc_def['percentage']) for alloc_def in abtest_data['allocations']]
@@ -33,18 +36,18 @@ class QuestionnaireEngine():
                                          "$push" : { 'answers' : answer }})
 
 
-    def create_new_session(self, session_id):
-        if self._db['sessions'].find_one({'_id' : session_id}) is not None:
-            return
-
+    def create_new_session(self):
         qname = self.get_questionnaire_based_on_experiment()
         qdata = self._db['questionnaires'].find_one({'_id' : qname})
         first_question = qdata['start']
+        session_id = self._db['sessions'].insert(
+            { 'next_question' : first_question,
+              'questionnaire' : qname, 'answers' : [] })
+        print(str(session_id))
         self._db['sessions'].update_one({ '_id' : session_id },
-                                        { "$set" :{ '_id' : session_id, 'next_question' : first_question,
-                                                    'questionnaire' : qname, 'answers' : [] },
-                                          '$currentDate': { 'created': { "$type" : "date" }}},
-                                         upsert=True)
+                                        { '$currentDate': { 'created': { "$type" : "date" }}})
+
+        return session_id
 
     def get_next_question(self, session_id):
         qdata = self._db['sessions'].find_one({'_id' : session_id})

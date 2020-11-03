@@ -11,7 +11,7 @@ from wtforms.validators import DataRequired
 from flask import render_template
 from flask import redirect
 
-import uuid
+from bson import ObjectId
 
 app = Flask(__name__)
 
@@ -24,7 +24,7 @@ QUESTIONNAIRES = 'questionnaires'
 ABTESTS = 'abtests'
 
 # TODO: Change this
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/l1'
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/l2'
 
 def create_textform(qdef):
     class F(FlaskForm):
@@ -162,14 +162,14 @@ def handle_question(question, session_id):
 
 # Rest API
 @app.route('/', methods=['POST', 'GET'])
-def start_questionnaire():
-    if 'uuid' not in session:
-        session['uuid'] = uuid.uuid4()
+def handle_questionnaire():
+    if 'uuid' not in session or not QE.session_is_valid(ObjectId(session['uuid'])):
+        session['uuid'] = str(QE.create_new_session())
 
-    #Create a new session. only if needed
-    QE.create_new_session(session['uuid'])
-    question = QE.get_next_question(session['uuid'])
-    return handle_question(question, session['uuid'])
+    session_uuid = ObjectId(session['uuid'])
+
+    question = QE.get_next_question(session_uuid)
+    return handle_question(question, session_uuid)
 
 @app.route(f'/{API_VERSION}/{QUESTIONS}/create', methods=['POST'])
 def create_question():
