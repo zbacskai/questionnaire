@@ -24,7 +24,7 @@ QUESTIONNAIRES = 'questionnaires'
 ABTESTS = 'abtests'
 
 # TODO: Change this
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/k'
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/l'
 
 def create_textform(qdef):
     class F(FlaskForm):
@@ -110,7 +110,12 @@ def get_next_question_id(qdef, qtype, answer):
     return 0
 
 def store_final_input(question, form, session_id):
-    pass
+    if form.submit.data:
+        QE.set_form_submitted(session_id)
+    else:
+        QE.delete_form(session_id)
+
+    return redirect('/')
 
 def store_answer_multi_input(question, form, session_id):
     qdef = question['definition']
@@ -147,10 +152,10 @@ def store_answer_and_get_next(question, form, session_id):
 
 # Helper functions
 def handle_question(question, session_id):
-    form = create_form(question)
-    if isinstance(form, str):
-        return form
+    if question['type'] == 'SUBMITTED':
+        return render_template('thanks-for-submit.html')
 
+    form = create_form(question)
     if form.validate_on_submit():
         return store_answer_and_get_next(question, form, session_id)
 

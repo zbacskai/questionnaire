@@ -6,6 +6,14 @@ class QuestionnaireEngine():
         self._dbclient = MongoClient('localhost', 27017, username='root', password='example')
         self._db = self._dbclient['questions_db']
 
+    def delete_form(self, session_id):
+        session_data = self._db['sessions'].delete_one({'_id' : session_id})
+
+    def set_form_submitted(self, session_id):
+        session_data = self._db['sessions'].find_one({'_id' : session_id})
+        self._db['sessions'].update_one({ '_id' : session_id },
+                                        { "$set" : { 'next_question' : 'SUBMITTED'}})
+
     def set_next_question(self, session_id, choice_index, answer):
         session_data = self._db['sessions'].find_one({'_id' : session_id})
         questionnaire = self._db['questionnaires'].find_one({'_id' : session_data['questionnaire']})
@@ -30,6 +38,9 @@ class QuestionnaireEngine():
 
     def get_next_question(self, session_id):
         qdata = self._db['sessions'].find_one({'_id' : session_id})
+        if qdata['next_question'] == 'SUBMITTED':
+            return { 'type' : 'SUBMITTED' }
+
         return self._db['questions'].find_one({'_id' : qdata['next_question']})
 
     def create_doc(self, collection_name, document_description):
