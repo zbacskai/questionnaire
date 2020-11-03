@@ -44,7 +44,9 @@ class QuestionnaireEngine():
         return self._db['questions'].find_one({'_id' : qdata['next_question']})
 
     def create_doc(self, collection_name, document_description):
-        self._db[collection_name].update_one({ '_id' : document_description['id'] },
+        document_id = document_description['id']
+        del document_description['id']
+        self._db[collection_name].update_one({ '_id' : document_id },
                                { "$set" : document_description },
                                upsert=True)
 
@@ -70,7 +72,7 @@ class QuestionnaireEngine():
     def list_all_docs(self, collection_name):
         all_documents = []
         for document in self._db[collection_name].find({}):
-            all_documents.append(document['id'])
+            all_documents.append(document['_id'])
 
         return { 'status_code' : 200, 'data' : all_documents }
 
