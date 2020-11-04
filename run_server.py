@@ -1,4 +1,5 @@
-from q_app.app import app
+from q_app.app import QuestionaireApp
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0")
+    qa = QuestionaireApp()
+    qa.run()

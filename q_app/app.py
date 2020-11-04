@@ -11,8 +11,6 @@ from q_app.engine.questionnaire import QuestionnaireEngine
 from q_app.flask.forms import FormFactory
 from q_app.flask.submission import UserInputHandler
 
-app = Flask(__name__)
-
 API_VERSION = "0.1"
 
 QUESTIONS = "questions"
@@ -33,102 +31,112 @@ UUID = 'uuid'
 FINAL_THANK_TEMPLATE = "thanks-for-submit.html"
 QUESTION_TEMPLATE = "question-step.html"
 
-app.secret_key = os.environ["Q_APP_SECRET_KEY"]
+class QuestionaireApp:
+    def _get_title(self, question, session_id):
+        if 'title' in question:
+            return question
 
-def _get_title(question, session_id):
-    if 'title' in question:
+        question_count = self._qe.get_question_count(session_id)
+        question['title'] = f'Question {question_count}'
         return question
 
-    question_count = QE.get_question_count(session_id)
-    question['title'] = f'Question {question_count}'
-    return question
+    def _handle_question(self, question, session_id):
+        if question["type"] == QuestionTypes.QuestionnaireClosure:
+            return render_template(FINAL_THANK_TEMPLATE)
 
-def _handle_question(question, session_id):
-    if question["type"] == QuestionTypes.QuestionnaireClosure:
-        return render_template(FINAL_THANK_TEMPLATE)
+        question = self._get_title(question, session_id)
+        form = FormFactory.create_form(question["type"], question["definition"])
+        if form.validate_on_submit():
+            return self._ui.store_answer_and_get_next(question, form, session_id)
 
-    question = _get_title(question, session_id)
-    form = FormFactory.create_form(question["type"], question["definition"])
-    if form.validate_on_submit():
-        return UI.store_answer_and_get_next(question, form, session_id)
-
-    return render_template(QUESTION_TEMPLATE, form=form, title=question["title"])
+        return render_template(QUESTION_TEMPLATE, form=form, title=question["title"])
 
 
-# Rest API
-@app.route("/", methods=["POST", "GET"])
-def handle_questionnaire():
-    if UUID not in session or not QE.session_is_valid(ObjectId(session[UUID])):
-        session["uuid"] = str(QE.create_new_session())
+    # Rest API
+    def handle_questionnaire(self):
+        if UUID not in session or not QE.session_is_valid(ObjectId(session[UUID])):
+            session["uuid"] = str(self._qe.create_new_session())
 
-    session_uuid = ObjectId(session[UUID])
+        session_uuid = ObjectId(session[UUID])
 
-    question = QE.get_question(session_uuid)
-    return _handle_question(question, session_uuid)
-
-
-@app.route(f"/{API_VERSION}/{QUESTIONS}/create", methods=["POST"])
-def create_question():
-    return jsonify(CA.create_doc(QUESTIONS_DB, request.json))
+        question = self._qe.get_question(session_uuid)
+        return self._handle_question(question, session_uuid)
 
 
-@app.route(f"/{API_VERSION}/{QUESTIONS}/delete", methods=["POST"])
-def delete_question():
-    return jsonify(CA.delete_doc(QUESTIONS_DB, request.json))
+    def create_question(self):
+        return jsonify(self._ca.create_doc(QUESTIONS_DB, request.json))
 
 
-@app.route(f"/{API_VERSION}/{QUESTIONS}/get")
-def get_question():
-    if "name" not in request.args:
-        status = {"status_code": 200, "error": 'variable "name" missing in query'}
-    else:
-        status = CA.get_doc(QUESTIONS_DB, request.args["name"])
-
-    return jsonify(status)
+    def delete_question(self):
+        return jsonify(self._ca.delete_doc(QUESTIONS_DB, request.json))
 
 
-@app.route(f"/{API_VERSION}/{QUESTIONS}/list")
-def get_question_list():
-    return jsonify(CA.list_all_docs(QUESTIONS_DB))
+    def get_question(self):
+        if "name" not in request.args:
+            status = {"status_code": 200, "error": 'variable "name" missing in query'}
+        else:
+            status = self._ca.get_doc(QUESTIONS_DB, request.args["name"])
+
+        return jsonify(status)
 
 
-@app.route(f"/{API_VERSION}/{QUESTIONNAIRES}/create", methods=["POST"])
-def create_questionnaire():
-    return jsonify(CA.create_doc(QUESTIONNAIRES_DB, request.json))
+    def get_question_list(self):
+        return jsonify(self._ca.list_all_docs(QUESTIONS_DB))
 
 
-@app.route(f"/{API_VERSION}/{QUESTIONNAIRES}/delete", methods=["POST"])
-def delete_questionnaire():
-    return jsonify(CA.delete_doc(QUESTIONNAIRES_DB, request.json))
+    def create_questionnaire(self):
+        return jsonify(self._ca.create_doc(QUESTIONNAIRES_DB, request.json))
 
 
-@app.route(f"/{API_VERSION}/{QUESTIONNAIRES}/get")
-def get_questionnaire():
-    if "name" not in request.args:
-        status = {"status_code": 200, "error": 'variable "name" missing in query'}
-    else:
-        status = CA.get_doc(QUESTIONNAIRES_DB, request.args["name"])
-
-    return jsonify(status)
+    def delete_questionnaire(self):
+        return jsonify(self._ca.delete_doc(QUESTIONNAIRES_DB, request.json))
 
 
-@app.route(f"/{API_VERSION}/{QUESTIONNAIRES}/list")
-def get_questionnaires_list():
-    status = CA.list_all_docs(QUESTIONNAIRES_DB)
-    return jsonify(status)
+    def get_questionnaire(self):
+        if "name" not in request.args:
+            status = {"status_code": 200, "error": 'variable "name" missing in query'}
+        else:
+            status = self._ca.get_doc(QUESTIONNAIRES_DB, request.args["name"])
+
+        return jsonify(status)
 
 
-@app.route(f"/{API_VERSION}/{ABTESTS}/update", methods=["POST"])
-def create_abtest():
-    request.json["id"] = ABTEST_KEY
-    return jsonify(CA.create_doc(ABTEST_DB, request.json))
+    def get_questionnaires_list(self):
+        status = self._ca.list_all_docs(QUESTIONNAIRES_DB)
+        return jsonify(status)
 
 
-@app.route(f"/{API_VERSION}/{ABTESTS}/delete", methods=["POST"])
-def delete_abtest():
-    return jsonify(CA.delete_doc(ABTEST_DB, {"id": ABTEST_KEY}))
+    def create_abtest(self):
+        request.json["id"] = ABTEST_KEY
+        return jsonify(self._ca.create_doc(ABTEST_DB, request.json))
 
 
-@app.route(f"/{API_VERSION}/{ABTESTS}/get")
-def get_abtest():
-    return jsonify(CA.get_doc(ABTEST_DB, ABTEST_KEY))
+    def delete_abtest(self):
+        return jsonify(self._ca.delete_doc(ABTEST_DB, {"id": ABTEST_KEY}))
+
+
+    def get_abtest(self):
+        return jsonify(self._ca.get_doc(ABTEST_DB, ABTEST_KEY))
+
+    def __init__(self, database = Database()):
+        self._db = database
+        self._ca = ConfigureApi(self._db)
+        self._qe = QuestionnaireEngine(self._db)
+        self._ui = UserInputHandler(self._qe)
+        self._app = Flask(__name__)
+        self._app.secret_key = os.environ["Q_APP_SECRET_KEY"]
+        self._app.add_url_rule(f"/{API_VERSION}/{ABTESTS}/get", 'get_abtest', self.get_abtest)
+        self._app.add_url_rule(f"/{API_VERSION}/{ABTESTS}/delete", 'delete_abtest', self.delete_abtest, methods=["POST"])
+        self._app.add_url_rule(f"/{API_VERSION}/{ABTESTS}/update", 'create_abtest', self.create_abtest, methods=["POST"])
+        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONNAIRES}/list", 'get_questionnaires_list', self.get_questionnaires_list)
+        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONNAIRES}/get", 'get_questionnaire', self.get_questionnaire)
+        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONNAIRES}/delete", 'delete_questionnaire', self.delete_questionnaire, methods=["POST"])
+        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONNAIRES}/create", 'create_questionnaire', self.create_questionnaire, methods=["POST"])
+        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONS}/list", 'get_question_list', self.get_question_list)
+        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONS}/get", 'get_question', self.get_question)
+        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONS}/create", 'create_question', self.create_question, methods=["POST"])
+        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONS}/delete", 'delete_question', self.delete_question, methods=["POST"])
+        self._app.add_url_rule(f"/", 'handle_questionnaire', self.handle_questionnaire, methods=["GET","POST"])
+
+    def run(self):
+        self._app.run(host="0.0.0.0")
