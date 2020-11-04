@@ -3,3 +3,13 @@ run:
 
 isort:
 	isort -rc .
+
+black:
+	black --target-version py38 .
+
+flake:
+	flake8 .
+
+test_unit:
+	Q_APP_SECRET_KEY='testkey' pytest -sv test
+    

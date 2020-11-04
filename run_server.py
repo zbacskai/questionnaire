@@ -1,5 +1,5 @@
-from q_app.app import QuestionaireApp
+from q_app.app import QuestionnaireApp
 
 if __name__ == "__main__":
-    qa = QuestionaireApp()
+    qa = QuestionnaireApp()
     qa.run()

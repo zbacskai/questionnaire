@@ -31,7 +31,8 @@ UUID = 'uuid'
 FINAL_THANK_TEMPLATE = "thanks-for-submit.html"
 QUESTION_TEMPLATE = "question-step.html"
 
-class QuestionaireApp:
+
+class QuestionnaireApp:
     def _get_title(self, question, session_id):
         if 'title' in question:
             return question
@@ -51,7 +52,6 @@ class QuestionaireApp:
 
         return render_template(QUESTION_TEMPLATE, form=form, title=question["title"])
 
-
     # Rest API
     def handle_questionnaire(self):
         if UUID not in session or not QE.session_is_valid(ObjectId(session[UUID])):
@@ -62,14 +62,11 @@ class QuestionaireApp:
         question = self._qe.get_question(session_uuid)
         return self._handle_question(question, session_uuid)
 
-
     def create_question(self):
         return jsonify(self._ca.create_doc(QUESTIONS_DB, request.json))
 
-
     def delete_question(self):
         return jsonify(self._ca.delete_doc(QUESTIONS_DB, request.json))
-
 
     def get_question(self):
         if "name" not in request.args:
@@ -79,18 +76,14 @@ class QuestionaireApp:
 
         return jsonify(status)
 
-
     def get_question_list(self):
         return jsonify(self._ca.list_all_docs(QUESTIONS_DB))
-
 
     def create_questionnaire(self):
         return jsonify(self._ca.create_doc(QUESTIONNAIRES_DB, request.json))
 
-
     def delete_questionnaire(self):
         return jsonify(self._ca.delete_doc(QUESTIONNAIRES_DB, request.json))
-
 
     def get_questionnaire(self):
         if "name" not in request.args:
@@ -100,43 +93,51 @@ class QuestionaireApp:
 
         return jsonify(status)
 
-
     def get_questionnaires_list(self):
         status = self._ca.list_all_docs(QUESTIONNAIRES_DB)
         return jsonify(status)
-
 
     def create_abtest(self):
         request.json["id"] = ABTEST_KEY
         return jsonify(self._ca.create_doc(ABTEST_DB, request.json))
 
-
     def delete_abtest(self):
         return jsonify(self._ca.delete_doc(ABTEST_DB, {"id": ABTEST_KEY}))
-
 
     def get_abtest(self):
         return jsonify(self._ca.get_doc(ABTEST_DB, ABTEST_KEY))
 
-    def __init__(self, database = Database()):
+    def __init__(self, database=Database()):
         self._db = database
         self._ca = ConfigureApi(self._db)
         self._qe = QuestionnaireEngine(self._db)
         self._ui = UserInputHandler(self._qe)
         self._app = Flask(__name__)
+
         self._app.secret_key = os.environ["Q_APP_SECRET_KEY"]
         self._app.add_url_rule(f"/{API_VERSION}/{ABTESTS}/get", 'get_abtest', self.get_abtest)
-        self._app.add_url_rule(f"/{API_VERSION}/{ABTESTS}/delete", 'delete_abtest', self.delete_abtest, methods=["POST"])
-        self._app.add_url_rule(f"/{API_VERSION}/{ABTESTS}/update", 'create_abtest', self.create_abtest, methods=["POST"])
-        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONNAIRES}/list", 'get_questionnaires_list', self.get_questionnaires_list)
+        self._app.add_url_rule(f"/{API_VERSION}/{ABTESTS}/delete", 'delete_abtest', self.delete_abtest,
+                               methods=["POST"])
+        self._app.add_url_rule(f"/{API_VERSION}/{ABTESTS}/update", 'create_abtest', self.create_abtest,
+                               methods=["POST"])
+        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONNAIRES}/list", 'get_questionnaires_list',
+                               self.get_questionnaires_list)
         self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONNAIRES}/get", 'get_questionnaire', self.get_questionnaire)
-        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONNAIRES}/delete", 'delete_questionnaire', self.delete_questionnaire, methods=["POST"])
-        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONNAIRES}/create", 'create_questionnaire', self.create_questionnaire, methods=["POST"])
+        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONNAIRES}/delete", 'delete_questionnaire',
+                               self.delete_questionnaire, methods=["POST"])
+        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONNAIRES}/create", 'create_questionnaire',
+                               self.create_questionnaire, methods=["POST"])
         self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONS}/list", 'get_question_list', self.get_question_list)
         self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONS}/get", 'get_question', self.get_question)
-        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONS}/create", 'create_question', self.create_question, methods=["POST"])
-        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONS}/delete", 'delete_question', self.delete_question, methods=["POST"])
-        self._app.add_url_rule(f"/", 'handle_questionnaire', self.handle_questionnaire, methods=["GET","POST"])
+        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONS}/create", 'create_question', self.create_question,
+                               methods=["POST"])
+        self._app.add_url_rule(f"/{API_VERSION}/{QUESTIONS}/delete", 'delete_question', self.delete_question,
+                               methods=["POST"])
+        self._app.add_url_rule(f"/", 'handle_questionnaire', self.handle_questionnaire, methods=["GET", "POST"])
 
     def run(self):
         self._app.run(host="0.0.0.0")
+
+    def test_client(self):
+        self._app.testing = True
+        return self._app.test_client()
